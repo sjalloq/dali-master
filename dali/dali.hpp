@@ -64,13 +64,8 @@ public:
 	/* Main Dali function */
 	void put(dali_payload_t dali_cmd);
 	
-	/* Callback to assign client socket to event */
-	
 	/* Function to pass pointer to Serial instance. */
 	void attach_uart(Serial *uart);
-	
-	/* Callback for summat */
-	void attach_client_handler(Callback<void(TCPSocket *sock)> func);
 	
 	/* Low level Dali commands */
 	void broadcast(uint8_t command);
@@ -79,7 +74,7 @@ public:
 
 	TCPSocket *client;
 	EventQueue *queue;
-	Event<void(TCPSocket*)> client_handler(Dali* obj, (Dali::*client_sigio)());
+	
 	
 private:
 

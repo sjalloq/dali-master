@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include "dali.hpp"
+#include "EventQueue.h"
 
 Dali::Dali(PinName rxPin, PinName txPin) : dali_rx(rxPin), dali_tx(txPin) {
 	init();
@@ -11,15 +12,9 @@ void Dali::attach_uart(Serial *uart) {
 }
 
 
-void Dali::attach_client_handler(Callback<void(TCPSocket *sock)> cb) {
-	_client_handler = cb;
-}
-
-
 void Dali::init() {
-	handler = this;
-	queue   = mbed_event_queue();
-	dali_tx = 1;
+	handler        = this;
+	dali_tx        = 1;
 	
 	init_timer();
     NVIC_SetVector(TIMER2_IRQn,(uint32_t)&irq);
@@ -50,13 +45,11 @@ void Dali::server_sigio(TCPSocket *socket) {
 					break;
 				case NSAPI_ERROR_OK: {
 					// Accepted connection
-					//client_init();
 					_uart->printf("Pop\n\r");
 					eventFlags.set(FLAG_CLIENT_CONNECT);
 					this->client->set_blocking(false);
 					_uart->printf("About to callback\n\r");
-					_client_handler(this->client);
-					this->client->sigio(this->client_handler);
+					//this->client->sigio(this->client_handler);
 					_uart->printf("Called back\n\r");
 					next_state = ACCEPT;
 					//flgs->set(FLAG_SOCKET_ACCEPT);
