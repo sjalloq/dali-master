@@ -429,15 +429,9 @@ void Dali::dali_send() {
 */
 void Dali::put(dali_payload_t dali_cmd) {
 	if(dali_cmd.control.is_req) {
-		
 	}
 }
 
-
-/*
-	Function    : broadcast(command)
-	Description : 
-*/
 void Dali::broadcast(uint8_t command) {
 	forward_frame = (0xFF << 8) | command;
 	dali_send();
@@ -451,4 +445,16 @@ void Dali::query_device_type(uint8_t addr) {
 void Dali::query_short_address(void) {
 	forward_frame = 0xBB00;
 	dali_send();
+}
+
+void Dali::turn_on(uint8_t addr) {
+	forward_frame = 0x7E00 & (addr << 9);
+	forward_frame |= 0x105;
+	dali_send();
+}
+
+void Dali::turn_off(uint8_t addr) {
+	forward_frame = 0x7E00 & (addr << 9);
+	forward_frame |= 0x100;
+	dali_send();	
 }

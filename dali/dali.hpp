@@ -71,6 +71,8 @@ public:
 	void broadcast(uint8_t command);
 	void query_device_type(uint8_t addr);
 	void query_short_address(void);
+	void turn_on(uint8_t addr);
+	void turn_off(uint8_t addr);
 
 	TCPSocket *client;
 	EventQueue *queue;
