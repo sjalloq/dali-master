@@ -73,6 +73,7 @@ public:
 	void query_short_address(void);
 	void turn_on(uint8_t addr);
 	void turn_off(uint8_t addr);
+	void dali_cmd_16(uint8_t addr, uint16_t data);
 
 	TCPSocket *client;
 	EventQueue *queue;
@@ -102,6 +103,8 @@ private:
 	uint32_t err;
 	volatile uint32_t leds;
 	bool print;
+	uint32_t te_stop = 33;              // number of half cycles to the stop bit (changes for data width)
+
 	
 	Callback<void(TCPSocket *sock)> _client_handler;
 

@@ -211,26 +211,26 @@ void Dali::timer_isr(void) {
 			frame_bit_pol = 1;
 			
 		/* DALI Frame : 1TE - 32TE, so address + command */
-		} else if (frame_bit_idx < 33) {
-			frame_bit_pol = (forward_frame >> ((32 - frame_bit_idx)/2)) & 1;
+		} else if (frame_bit_idx < te_stop) {
+			frame_bit_pol = (forward_frame >> (((te_stop-1) - frame_bit_idx)/2)) & 1;
 			
 			if (frame_bit_idx & 1)
 				frame_bit_pol = !frame_bit_pol; // invert if first half of data bit
 			
 		/* DALI Frame : 33TE start of stop bit (4TE) and start of min settling time (7TE)  */
-		} else if (frame_bit_idx == 33) {
+		} else if (frame_bit_idx == te_stop) {
 			frame_bit_pol = 1;
 			
 		/* DALI Frame : 44TE, end stop bits + settling time 
 			If the forward frame requires an answer, it must come within 9.174mS
 			so we set up the match register as a watchdog and enable CR0 to receive
 			the response. */
-		} else if (frame_bit_idx == 44) { 
+		} else if (frame_bit_idx == (te_stop+11)) { 
 			LPC_TIM2->MR1 = 9174;  // timeout of 22TE = 9,174 msec
 			LPC_TIM2->CCR = 7;     // enable rx, capture on both edges
 			
 		/* DALI Frame :  End of transfer. */
-		} else if (frame_bit_idx == 45) {
+		} else if (frame_bit_idx == (te_stop+12)) {
 			LPC_TIM2->TCR = 2;      // stop and reset timer
 			LPC_TIM2->MCR = (3<<3); // re-enable receive monitoring after sending
 			LPC_TIM2->MR1 = TE;     // set the half period
@@ -450,11 +450,13 @@ void Dali::query_short_address(void) {
 void Dali::turn_on(uint8_t addr) {
 	forward_frame = 0x7E00 & (addr << 9);
 	forward_frame |= 0x105;
+	//printf("turn_on: 0x%0x\n\r", forward_frame);
 	dali_send();
 }
 
 void Dali::turn_off(uint8_t addr) {
 	forward_frame = 0x7E00 & (addr << 9);
 	forward_frame |= 0x100;
+	//printf("turn_off: 0x%0x\n\r", forward_frame);
 	dali_send();	
 }

@@ -15,9 +15,11 @@
 #include "NTPClient.h"
 #include "LocalFileSystem.h"
 
-#define SECONDS 5.0
-#define ADDR 0xA7
+#define SECONDS 300.0
+#define ADDR 0x7
 #define BUFSZ 256
+#define ONTIME 14
+#define OFFTIME 00
 
 class Lights {
 public:
@@ -55,8 +57,8 @@ time_t Lights::toggle() {
 	info = gmtime(&timestamp);
 	uint32_t hour = info->tm_hour;
 	
-	printf("hour is %d\n\r", hour);
-	
+	printf("Hour is %d\n\r",hour);
+
 	/* If we are between the on time and off time, turn the lights on */
 	if( ((hour >= on_hour) && (hour > off_hour)) || ((hour < on_hour) && (hour < off_hour)) ) {
 		// Lights should be on
@@ -69,9 +71,11 @@ time_t Lights::toggle() {
 				goto EARLY;
 			}
 		}
-		_dali->turn_on(_addr);
-		_led = 1;
-		printf("toggle::on\n\r");
+		if (_led.read() == 0) {
+			printf("Turning on\n\r");
+			_dali->turn_on(_addr);
+			_led = 1;
+		}
 	} else {
 		// Lights should be off
 		if (_override) {
@@ -81,9 +85,11 @@ time_t Lights::toggle() {
 				goto EARLY;
 			}
 		}
-		_dali->turn_off(_addr);
-		_led = 0;
-		printf("toggle::off\n\r");
+		if (_led.read() == 1) {
+			printf("Turning off\n\r");
+			_dali->turn_off(_addr);
+			_led = 0;			
+		}
 	}
 	
 EARLY:
@@ -177,8 +183,8 @@ int main()
 
 	/* Set up the lighting control */
 	Lights lighting(&DaliMaster, LED2);
-	lighting.set_on_time(19);
-	lighting.set_off_time(06);
+	lighting.set_on_time(ONTIME);
+	lighting.set_off_time(OFFTIME);
 	lighting.set_address(ADDR);
 	lighting.toggle();
 	
@@ -226,6 +232,8 @@ int main()
 		if (lighting.check_time) {
 			time = lighting.toggle();
 			c_time_string = ctime(&time);
+			// REVISIT: testing only
+			//lighting.turn_on();
 			//Uart.printf("Current time is %s\n\r", c_time_string);
 		}
 		
